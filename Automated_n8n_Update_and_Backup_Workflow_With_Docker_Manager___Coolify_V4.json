@@ -1,0 +1,1035 @@
+{
+  "name": "Automated n8n Update and Backup Workflow With Docker Manager - Coolify V4",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "676920ca-635e-4efe-beb3-fd48d9d65e8c",
+              "leftValue": "={{ $json['Working Method (CLI choose 1 - HTTP chose 2)'] }}",
+              "rightValue": 2,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "aafd4ddd-5590-4ae2-9ca8-354c1f25e604",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=http://{{ $item(\"0\").$node[\"Config Node\"].json[\"N8N Instance (domain or IP:PORT)\"] }}/rest/settings",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json, text/plain, */*"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "en-US,en;q=0.5"
+            },
+            {
+              "name": "Accept-Encoding",
+              "value": "gzip, deflate, br"
+            },
+            {
+              "name": "sessionid",
+              "value": "fwstbgvkd4"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0"
+            },
+            {
+              "name": "DNT",
+              "value": "1"
+            },
+            {
+              "name": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "name": "Referer",
+              "value": "=https://{{ $item(\"0\").$node[\"Config Node\"].json[\"N8N Instance (domain or IP:PORT)\"] }}/settings/usage"
+            },
+            {
+              "name": "Sec-Fetch-Dest",
+              "value": "empty"
+            },
+            {
+              "name": "Sec-Fetch-Mode",
+              "value": "cors"
+            },
+            {
+              "name": "Sec-Fetch-Site",
+              "value": "same-origin"
+            },
+            {
+              "name": "Sec-GPC",
+              "value": "1"
+            },
+            {
+              "name": "Pragma",
+              "value": "no-cache"
+            },
+            {
+              "name": "Cache-Control",
+              "value": "no-cache"
+            },
+            {
+              "name": "TE",
+              "value": "trailers"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "id": "b6903b57-9bf2-4598-b810-eec838cc1ae7",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1300,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "stdout"
+            },
+            {
+              "fieldToAggregate": "data.versionCli"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3e505246-045c-451e-a222-2ff8a4aa3805",
+      "name": "Aggregate",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1580,
+        340
+      ],
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "url": "=https://api.n8n.io/api/versions/{{ $json[\"Current Version\"] }}",
+        "options": {}
+      },
+      "id": "deee7431-eaf6-45fb-a5fa-e7e7d4ebab36",
+      "name": "Check update",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        2020,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "b7d2483a-f036-4165-8390-13b46a374d59",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "5803985e-9fdb-4661-9330-ffb76b6fe362",
+              "leftValue": "={{ $('Current Version').item.json[\"Current Version\"] }}",
+              "rightValue": "=2",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d798b492-303b-48f0-a98f-9e686ed4900c",
+      "name": "New Update?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        2240,
+        340
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "d7827c19-4408-411f-aacb-9f72882d0828",
+      "name": "No Operation, do nothing",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2860,
+        360
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "af827708-c6ec-4fa9-b1e4-be8479e05ad5",
+      "name": "Keep newest one",
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        2460,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Config Node').item.json['telegram chat id'] }}",
+        "text": "=<b>🎉 New Update for N8N! 🚀</b>  🔹 <b>Your current version is</b>: {{ $('Current Version').item.json[\"Current Version\"] }} 📌  🔹 <b>Available Update</b>: {{ '<code>V'+$('Check update').item.json.name+'</code>' }} ✨ 📅 <b>Release data</b>:  {{ '<code>'+DateTime.fromISO($node[\"Check update\"].json[\"createdAt\"]).toFormat('MMMM dd, yyyy, hh:mm a')+'</code>' }} 📝 <b>The new update description is</b>:-   <blockquote>{{ $('Check update').item.json.description }} 📄</blockquote>  Currently N8N doing auto backup to your data and send it here.",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ `Read more about V` + $('Check update').item.json.name }}",
+                    "additionalFields": {
+                      "url": "={{ $('Check update').item.json.documentationUrl }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "disable_web_page_preview": true,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "0b8ee28b-1769-4ee7-b738-02adbba96157",
+      "name": "Step1 Notify",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        1300,
+        640
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "PZbFiw3zlPM0ewO4",
+          "name": "MyCoolifyBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "n8n export:credentials --all --decrypted"
+      },
+      "id": "5652b359-f3db-4887-99d8-dd88fe01083d",
+      "name": "Export credentials",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "255efc65-15a5-42cb-822b-f3d986233c78",
+              "name": "",
+              "value": "={{ $json.stdout }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7c323c5a-7726-4727-b638-19c7ebd09aef",
+      "name": "credentials",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        1740,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {
+          "encoding": "utf8",
+          "fileName": "credentials.json"
+        }
+      },
+      "id": "af23843c-bb21-4374-bc3e-efc59f886d15",
+      "name": "Credentials.json",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1960,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendDocument",
+        "chatId": "={{ $('Config Node').item.json['telegram chat id'] }}",
+        "binaryData": true,
+        "additionalFields": {
+          "caption": "=This is your credentials decrypted for version {{ '<code>V'+$('Current Version').item.json[\"Current Version\"]+'</code>' }} Keep it safe! 🔐  Date: {{ DateTime.fromISO($now).toFormat('MMMM dd, yyyy, hh:mm a') }}  Next step: Backup workflows.",
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "66d3d611-750d-454c-9720-d04ae1ccbf2d",
+      "name": "Step2 Notify",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        2180,
+        640
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "PZbFiw3zlPM0ewO4",
+          "name": "MyCoolifyBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "n8n export:workflow --all"
+      },
+      "id": "859c92ef-3f41-4a66-9f3f-1abdaf480a71",
+      "name": "Export Workflows",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2400,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c3f8d1b4-8dd4-4534-aea5-8b571dca12cd",
+              "name": "",
+              "value": "={{ $json.stdout }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d37cf1ad-5d68-4527-8acc-ce14be7bbd0a",
+      "name": "Workflows",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        2620,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {
+          "encoding": "utf8",
+          "fileName": "workflows.json"
+        }
+      },
+      "id": "4d77c6e9-2921-453e-9ddb-02c2ea0d8f44",
+      "name": "Workflows.json",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        2840,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendDocument",
+        "chatId": "={{ $('Config Node').item.json['telegram chat id'] }}",
+        "binaryData": true,
+        "additionalFields": {
+          "caption": "=🔒 This is your workflows decrypted for version {{ 'V'+$('Current Version').item.json[\"Current Version\"]+'' }}. Keep it safe! 🔐  📅 Date: {{ DateTime.fromISO($now).toFormat('MMMM dd, yyyy, hh:mm a') }} 🗓️  🚀 Next step: Buckle up and get ready to update N8N to version {{ 'V'+$('Check update').item.json.name+'' }}! 🌟 Hold on tight as the server takes a quick nap for about a minute. 😴 If everything goes smoothly, you can sit back and relax. But, if you don't see the N8N URL working within 5 minutes, well... you might want to consider calling the ambulance! 🚑  Enjoy the ride and happy updating! 😄✨",
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "de373638-2409-47bc-8e6c-990bf26e4f0f",
+      "name": "Step3 Notify",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        3060,
+        640
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "PZbFiw3zlPM0ewO4",
+          "name": "MyCoolifyBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "a5b14212-79c7-4ad1-a14b-39762113480b",
+              "leftValue": "={{ $item(\"0\").$node[\"Step2 Notify\"].json[\"ok\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "5b5a3a57-b588-46ef-87bf-24907790dbdc",
+              "leftValue": "={{ $item(\"0\").$node[\"Step3 Notify\"].json[\"ok\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "07bb9014-c428-496c-a14e-b7251a9bb8af",
+      "name": "Checking if files backed up 👆",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        860
+      ]
+    },
+    {
+      "parameters": {
+        "errorMessage": "=There's Error with sending backup files. check the workflow {{ $workflow.name }} telegram fileds if everything okay, post an issue in community.n8n.io with mention the creator of template."
+      },
+      "id": "1962a89b-8330-476e-9b1f-2f91dc937907",
+      "name": "Stop and Error",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1740,
+        940
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config Node').item.json[\"Coolify webhook URL\"].match(/(?:https?:\\/\\/)?([^\\/]+)\\/api\\/v([^\\/?]+)\\/([^\\/?]+)/)[0] }}?uuid={{ $('Config Node').item.json[\"Coolify webhook URL\"].match(/uuid=([^&]+)/)[1] }}&force=true",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ $('Config Node').item.json[\"Coolify API Token\"] }}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true,
+          "redirect": {
+            "redirect": {}
+          },
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "39e56a82-ec61-4125-a373-25f2ce9e1917",
+      "name": "Update N8N Docker",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        2080,
+        860
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "minutes"
+      },
+      "id": "2f6a53e6-90bf-49fb-af8c-d077f95fd7d4",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        2420,
+        860
+      ],
+      "webhookId": "d4f71521-a144-4289-9bbe-30da954de9a2",
+      "notesInFlow": true,
+      "notes": "Waiting 2 Minutes"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Config Node').item.json['telegram chat id'] }}",
+        "text": "=📢 Update Complete! 🎉  🌟 Congratulations on successfully updating N8N to version {{ ('<code>V'+$('Check update').item.json.name+'</code>') || '' }}! 🚀✨  The server is up and running smoothly again. 🏃‍♂️💨 Feel free to dive back into your workflows and enjoy the latest features and enhancements. 🎉",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "d27ec0a1-9d3f-4cf6-9575-a1b3d70423a6",
+      "name": "Step4 Notify (Final)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [
+        3040,
+        860
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "PZbFiw3zlPM0ewO4",
+          "name": "MyCoolifyBot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Starting Stack\n\n\n\n\n\n\n\n\n\n\n\n\n\n## Configuration Instructions\n\n**Ensure to property set up the Config Node with the required details:**\n- **Telegram Chat ID**: Your Telegram identifier\n\n- **Coolify Webhook URL**:\n-- Navigate to your Coolify project\n-- Go to Configuration > Webhooks.\n-- Copy the Webhooks URL.\n\n**URL Format:** https://yourdomain.tld/api/v1/deploy?uuid=yourUUID&force=false\n\n- **Coolify API Token:**\n-- Access the Coolify dashboard.\n-- Select Security > API Tokens.\n-- Generate or copy your API Token.\n\n**Token Format:** Bearer 128r89twe8f9yhsdihvuihuzh\n\nFor further details, consult the Coolify Documentation.\n\nAccuracy in these configurations is crucial for the workflow's functionality.\n\n- **Please Note:**\nWith CLI Mode There's no need to setup N8N Instance host. This workflow template tested on Hetzner Server with Coolify V4 & N8N 1.26.0 using this configuration\n\nSource: https://n8n.nskha.com/automated-n8n-update-and-backup-workflow-with-docker-manager-coolify-v4-9d8klnlwlz",
+        "height": 863.8204183649984,
+        "width": 632.3355752549998
+      },
+      "id": "fd62193a-588f-400b-af85-ff82bdcfa1da",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        600,
+        197.463622685578
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "id": "5bc0bca5-8a18-4b4a-8e3a-8f9252b0d077",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        640,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Checking Version (Stable Version Only)",
+        "height": 357.3614104876731,
+        "width": 1341.6803434200574,
+        "color": 4
+      },
+      "id": "ea47ca46-f223-45ee-b9cf-72a1c04fd45c",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1240,
+        197.93163831004512
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Workflow END\nIn future versions, we can enhance this section to include daily warnings and audits of N8N instance and send them to Telegram.",
+        "height": 354.3610141716962,
+        "width": 620.248729395813
+      },
+      "id": "ac4aad52-c323-4911-9c6c-2d934ba42c88",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2590.648592996158,
+        200.1672434518676
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Backup",
+        "height": 228.87890419463707,
+        "width": 1970.0084770219687,
+        "color": 3
+      },
+      "id": "f73a1d83-22b8-4f27-9363-e4b18cf9914d",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1240.9686209563713,
+        560.2511778355524
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Update & Deploy",
+        "height": 260.80387310215235,
+        "width": 1969.9799431095312,
+        "color": 4
+      },
+      "id": "d981badc-8371-41a9-9d35-904006ff1a0d",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1240,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "858d5631-e78d-4abb-bc59-58973835e661",
+              "name": "Working Method (CLI choose 1 - HTTP chose 2)",
+              "value": 1,
+              "type": "number"
+            },
+            {
+              "id": "fc3adc92-6bcd-41c7-8610-9abf82d777d5",
+              "name": "N8N Instance (domain or IP:PORT)",
+              "value": "127.0.01:5678",
+              "type": "string"
+            },
+            {
+              "id": "91e5d2a5-5986-4395-8dfe-2d30bfb7257a",
+              "name": "telegram chat id",
+              "value": "<Your Telegram chat id>",
+              "type": "string"
+            },
+            {
+              "id": "dfd8a639-64a3-42f3-a146-15822c5ffdb7",
+              "name": "Coolify webhook URL",
+              "value": "<Your Coolify Container Webhook URL Here>",
+              "type": "string"
+            },
+            {
+              "id": "1ccf2a19-0a91-4558-9881-a87a4e1feef4",
+              "name": "Coolify API Token",
+              "value": "<Your Coolify API Including Bearer Here>",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3bc24911-877a-40c9-93d7-59cfbf95e9a6",
+      "name": "Config Node",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        860,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d07b633b-ca73-4d6b-bb25-431f0870ec64",
+              "name": "Current Version",
+              "value": "={{ $('Aggregate').item.json.stdout[0] || $('Aggregate').item.json.versionCli[0] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e294f62b-8234-446f-8863-4a276241a2a8",
+      "name": "Current Version",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        1800,
+        340
+      ]
+    },
+    {
+      "parameters": {
+        "command": "n8n --version"
+      },
+      "id": "1049c714-ceec-43ed-b7f6-85397e148182",
+      "name": "CLI Check Version",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        260
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "If": {
+      "main": [
+        [
+          {
+            "node": "CLI Check Version",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Current Version",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check update": {
+      "main": [
+        [
+          {
+            "node": "New Update?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New Update?": {
+      "main": [
+        [
+          {
+            "node": "Keep newest one",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep newest one": {
+      "main": [
+        [
+          {
+            "node": "Step1 Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step1 Notify": {
+      "main": [
+        [
+          {
+            "node": "Export credentials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Export credentials": {
+      "main": [
+        [
+          {
+            "node": "credentials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "credentials": {
+      "main": [
+        [
+          {
+            "node": "Credentials.json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Credentials.json": {
+      "main": [
+        [
+          {
+            "node": "Step2 Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step2 Notify": {
+      "main": [
+        [
+          {
+            "node": "Export Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Export Workflows": {
+      "main": [
+        [
+          {
+            "node": "Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflows": {
+      "main": [
+        [
+          {
+            "node": "Workflows.json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflows.json": {
+      "main": [
+        [
+          {
+            "node": "Step3 Notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step3 Notify": {
+      "main": [
+        [
+          {
+            "node": "Checking if files backed up 👆",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Checking if files backed up 👆": {
+      "main": [
+        [
+          {
+            "node": "Update N8N Docker",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update N8N Docker": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Step4 Notify (Final)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Step4 Notify (Final)": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config Node",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config Node": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Current Version": {
+      "main": [
+        [
+          {
+            "node": "Check update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CLI Check Version": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6f5a28af-af57-496f-afd2-29c00a356754",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3f916bb3e45dd508149a1730e986c5a5ad9a4359874787683e765182aeeff021"
+  },
+  "id": "laQ99iuJk9nhbB0T",
+  "tags": [
+    {
+      "name": "Coolify",
+      "id": "A2ivh8fSqN7OzRPf",
+      "createdAt": "2024-02-25T10:03:38.028Z",
+      "updatedAt": "2024-02-25T10:03:38.028Z"
+    },
+    {
+      "name": "N8N",
+      "id": "rAFSWznInVmJsLRu",
+      "createdAt": "2024-02-25T10:03:43.396Z",
+      "updatedAt": "2024-02-25T10:03:43.396Z"
+    },
+    {
+      "name": "Telegram",
+      "id": "DUyOGN64ap1RwTjK",
+      "createdAt": "2024-02-25T10:03:30.012Z",
+      "updatedAt": "2024-02-25T10:03:30.012Z"
+    }
+  ]
+}
